@@ -130,6 +130,28 @@ class OusterDriver : public OusterSensor {
                 }));
         }
 
+        if (impl::check_token(tokens, "RINGS")) {
+            scan_pubs.resize(num_returns);
+            for (int i = 0; i < num_returns; ++i) {
+                scan_pubs[i] = create_publisher<sensor_msgs::msg::LaserScan>(
+                    topic_for_return("scan", i), selected_qos);
+            }
+
+            int beams_count = static_cast<int>(get_beams_count(info));
+            scan_ring = std::min(std::max(scan_ring, 0), beams_count - 1);
+
+            for (int scan_ring = 0; scan_ring < beams_count; ++scan_ring) {
+              std::stringstream ss;
+              ss << tf_bcast.lidar_frame_id() << "_" << scan_ring;
+              std::string ring_frame_id(ss.str());
+              processors.push_back(LaserScanProcessor::create(
+                  info, ring_frame_id, scan_ring,
+                  [this](LaserScanProcessor::OutputType msgs) {
+                      for (size_t i = 0; i < msgs.size(); ++i) scan_pubs[i]->publish(*msgs[i]);
+                  }));
+            }
+        }
+
         if (impl::check_token(tokens, "IMG")) {
             const std::map<sensor::ChanField, std::string>
                 channel_field_topic_map_1{
@@ -166,7 +188,7 @@ class OusterDriver : public OusterSensor {
         }
 
         if (impl::check_token(tokens, "PCL") || impl::check_token(tokens, "SCAN") ||
-            impl::check_token(tokens, "IMG"))
+            impl::check_token(tokens, "IMG") || impl::check_token(tokens, "RINGS"))
             lidar_packet_handler = LidarPacketHandler::create_handler(
                 info, processors, timestamp_mode,
                 static_cast<int64_t>(ptp_utc_tai_offset * 1e+9));
