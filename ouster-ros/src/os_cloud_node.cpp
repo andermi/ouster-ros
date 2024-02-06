@@ -160,8 +160,6 @@ class OusterCloud : public OusterProcessingNodeBase {
             }
 
             int beams_count = static_cast<int>(get_beams_count(info));
-            scan_ring = std::min(std::max(scan_ring, 0), beams_count - 1);
-
             for (int scan_ring = 0; scan_ring < beams_count; ++scan_ring) {
               std::stringstream ss;
               ss << tf_bcast.lidar_frame_id() << "_" << scan_ring;
