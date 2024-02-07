@@ -69,6 +69,9 @@ class OusterSensor : public OusterSensorNodeBase {
 
     void halt();
 
+    rclcpp::Publisher<ouster_sensor_msgs::msg::PacketMsg>::SharedPtr lidar_packet_pub;
+    ouster_sensor_msgs::msg::PacketMsg lidar_packet;
+
    private:
     void declare_parameters();
 
@@ -148,9 +151,7 @@ class OusterSensor : public OusterSensorNodeBase {
     std::string mtp_dest;
     bool mtp_main;
     std::shared_ptr<sensor::client> sensor_client;
-    ouster_sensor_msgs::msg::PacketMsg lidar_packet;
     ouster_sensor_msgs::msg::PacketMsg imu_packet;
-    rclcpp::Publisher<ouster_sensor_msgs::msg::PacketMsg>::SharedPtr lidar_packet_pub;
     rclcpp::Publisher<ouster_sensor_msgs::msg::PacketMsg>::SharedPtr imu_packet_pub;
     rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_srv;
     rclcpp::Service<ouster_sensor_msgs::srv::GetConfig>::SharedPtr get_config_srv;

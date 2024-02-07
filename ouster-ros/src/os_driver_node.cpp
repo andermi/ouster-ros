@@ -61,6 +61,9 @@ class OusterDriver : public OusterSensor {
         auto selected_qos =
             use_system_default_qos ? system_default_qos : sensor_data_qos;
 
+        lidar_packet_pub =
+            create_publisher<ouster_sensor_msgs::msg::PacketMsg>("lidar_packets", selected_qos);
+
         auto timestamp_mode = get_parameter("timestamp_mode").as_string();
         auto ptp_utc_tai_offset =
             get_parameter("ptp_utc_tai_offset").as_double();
@@ -193,6 +196,11 @@ class OusterDriver : public OusterSensor {
     }
 
     virtual void on_lidar_packet_msg(const uint8_t* raw_lidar_packet) override {
+        if (lidar_packet_pub) {
+            std::memcpy(lidar_packet.buf.data(), raw_lidar_packet,
+                        lidar_packet.buf.size());
+            lidar_packet_pub->publish(lidar_packet);
+        }
         if (lidar_packet_handler) lidar_packet_handler(raw_lidar_packet);
     }
 
